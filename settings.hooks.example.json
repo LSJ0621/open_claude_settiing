@@ -1,0 +1,24 @@
+{
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Read|Edit|Write|MultiEdit|NotebookEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "INPUT=$(cat); FP=$(printf '%s' \"$INPUT\" | jq -r '.tool_input.file_path // .tool_input.notebook_path // \"\"'); BASE=$(basename \"$FP\"); if printf '%s' \"$BASE\" | grep -Eq '^\\.env(\\..+)?$' && [ \"$BASE\" != \".env.example\" ]; then printf '%s' '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\".env 관련 파일 접근이 차단되어 있습니다 (.env.example만 허용).\"}}'; else printf '%s' '{}'; fi"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "INPUT=$(cat); CMD=$(printf '%s' \"$INPUT\" | jq -r '.tool_input.command // \"\"'); STRIPPED=$(printf '%s' \"$CMD\" | sed 's/\\.env\\.example//g' | LC_ALL=C tr -c 'A-Za-z0-9._/-' ' '); if printf '%s' \"$STRIPPED\" | grep -Eq '(^|[[:space:]=/])\\.env(\\.[a-zA-Z0-9_]+)?([[:space:]*/]|$)'; then printf '%s' '{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\".env 관련 파일 접근이 차단되어 있습니다 (.env.example만 허용).\"}}'; else printf '%s' '{}'; fi"
+          }
+        ]
+      }
+    ]
+  }
+}
